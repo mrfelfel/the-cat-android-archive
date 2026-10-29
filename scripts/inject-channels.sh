@@ -33,7 +33,14 @@ APKSIGNER="$BT/apksigner"
 ZIPALIGN="$BT/zipalign"
 KEYSTORE="TMessagesProj/config/release.keystore"
 
-prop() { grep "^$1=" gradle.properties | head -1 | cut -d= -f2-; }
+prop() {
+    local v=""
+    v="$(grep "^$1=" gradle.properties 2>/dev/null | head -1 | cut -d= -f2-)"
+    if [ -z "$v" ] && [ -f "$HOME/.gradle/gradle.properties" ]; then
+        v="$(grep "^$1=" "$HOME/.gradle/gradle.properties" 2>/dev/null | head -1 | cut -d= -f2-)"
+    fi
+    printf '%s' "$v"
+}
 KEY_ALIAS="$(prop RELEASE_KEY_ALIAS)"
 KEY_PASS="$(prop RELEASE_KEY_PASSWORD)"
 STORE_PASS="$(prop RELEASE_STORE_PASSWORD)"

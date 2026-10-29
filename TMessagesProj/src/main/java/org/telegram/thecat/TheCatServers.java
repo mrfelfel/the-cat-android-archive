@@ -334,10 +334,22 @@ public class TheCatServers {
             fingerprint = THECAT_RSA_FINGERPRINT;
         }
         int mainDc = server.mainDcId > 0 ? server.mainDcId : 1;
+        // For the builtin production server, prefer the catnet-resolved reachable
+        // endpoint over the hardcoded seed, so a blocked seed still connects. Dev
+        // and custom servers are not in the catnet registry -> use their own address.
+        String host = server.host;
+        int port = server.port;
+        if (DEFAULT_HOST.equals(server.host) && server.port == DEFAULT_PORT) {
+            CatNetResolver r = CatNetResolver.getInstance();
+            if (r.hasResolved()) {
+                host = r.getResolvedHost();
+                port = r.getResolvedPort();
+            }
+        }
         ConnectionsManager.native_applyServerConfig(
                 accountNum,
-                server.host,
-                server.port,
+                host,
+                port,
                 false,
                 mainDc,
                 key,
@@ -366,6 +378,24 @@ public class TheCatServers {
         if (server != null) {
             applyServerToAccount(server, accountNum, false);
         }
+    }
+
+    /**
+     * Kick off catnet discovery of a reachable Cat server endpoint. When it finds a
+     * new one (e.g. the seed is blocked), re-applies the server to every account so
+     * live connections re-point. No-op for dev (its server is not in the catnet
+     * registry). Seed-first and safe to call always.
+     */
+    public static void startCatNetResolution() {
+        TheCatServer s = thecatServer();
+        if (s == null || !DEFAULT_HOST.equals(s.host) || s.port != DEFAULT_PORT) {
+            return;
+        }
+        CatNetResolver.getInstance().start(DEFAULT_HOST, DEFAULT_PORT, () -> {
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                applyStoredServerToAccount(a);
+            }
+        });
     }
 
     // --- Helpers ---

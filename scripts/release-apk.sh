@@ -13,6 +13,11 @@
 #   dist/TheCat-<version>-ARM-ZeroHub.apk  (aarm: armeabi-v7a + arm64-v8a,
 #                                           ~19 MB smaller — default download)
 #
+# This is the PRIORITY build (direct / standalone app). Built from the
+# store x standalone variants: production applicationId, R8 minified,
+# THE_CAT_DEV_SERVER=false. The Bazaar script is only for when a Bazaar
+# build is explicitly needed.
+#
 # Environment quirks this script papers over:
 #   - ~/.gradle/gradle.properties may point at a dead SOCKS proxy -> disabled via -D
 #   - dl.google.com is unreachable from some networks -> Aliyun mirror init script
@@ -25,7 +30,16 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 # --- Config (kept in sync with gradle.properties) ---
-prop() { grep "^$1=" gradle.properties | head -1 | cut -d= -f2-; }
+# Release signing credentials live in ~/.gradle/gradle.properties (kept OUT of the
+# repo), so fall back there when the project gradle.properties omits them.
+prop() {
+    local v=""
+    v="$(grep "^$1=" gradle.properties 2>/dev/null | head -1 | cut -d= -f2-)"
+    if [ -z "$v" ] && [ -f "$HOME/.gradle/gradle.properties" ]; then
+        v="$(grep "^$1=" "$HOME/.gradle/gradle.properties" 2>/dev/null | head -1 | cut -d= -f2-)"
+    fi
+    printf '%s' "$v"
+}
 VERSION="$(prop APP_VERSION_NAME)"
 KEY_ALIAS="$(prop RELEASE_KEY_ALIAS)"
 KEY_PASS="$(prop RELEASE_KEY_PASSWORD)"
@@ -141,18 +155,21 @@ if [ "$FREE_KB" -lt $((5 * 1024 * 1024)) ]; then
 fi
 
 # --- Build ---
-# task name helpers: afat -> assembleAfatRelease, aarm -> assembleAarmRelease
+# task name helpers: afat -> assembleAfatStoreStandalone,
+#                    aarm -> assembleAarmStoreStandalone
+# (module has flavor dimensions abi x severity with store/dev; store keeps
+#  the production applicationId and THE_CAT_DEV_SERVER=false)
 GRADLE_TASKS=()
 for flavor in "${FLAVORS[@]}"; do
     cap="$(tr '[:lower:]' '[:upper:]' <<< "${flavor:0:1}")${flavor:1}"
-    GRADLE_TASKS+=(":TMessagesProj_AppStandalone:assemble${cap}Release")
+    GRADLE_TASKS+=(":TMessagesProj_AppStandalone:assemble${cap}StoreStandalone")
 done
 
 if [ "$SKIP_BUILD" = 1 ]; then
     step "Skipping build (--skip-build)"
     for flavor in "${FLAVORS[@]}"; do
-        [ -f "$APK_DIR/$flavor/release/app.apk" ] \
-            || fail "No APK at $APK_DIR/$flavor/release/app.apk — run without --skip-build first"
+        [ -f "$APK_DIR/${flavor}Store/standalone/app.apk" ] \
+            || fail "No APK at $APK_DIR/${flavor}Store/standalone/app.apk — run without --skip-build first"
     done
 else
     step "Building ${GRADLE_TASKS[*]}"
@@ -162,7 +179,7 @@ fi
 # --- Sign + verify each selected flavor (always re-sign; Gradle's signature is not trusted) ---
 mkdir -p "$OUT_DIR"
 for flavor in "${FLAVORS[@]}"; do
-    APK_SRC="$APK_DIR/$flavor/release/app.apk"
+    APK_SRC="$APK_DIR/${flavor}Store/standalone/app.apk"
     OUT="$OUT_DIR/${OUT_NAME[$flavor]}"
     [ -f "$APK_SRC" ] || fail "Build produced no APK at $APK_SRC"
 

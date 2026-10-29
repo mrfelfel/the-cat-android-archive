@@ -35,7 +35,16 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 # --- Config (kept in sync with gradle.properties) ---
-prop() { grep "^$1=" gradle.properties | head -1 | cut -d= -f2-; }
+# Release signing credentials live in ~/.gradle/gradle.properties (kept OUT of the
+# repo), so fall back there when the project gradle.properties omits them.
+prop() {
+    local v=""
+    v="$(grep "^$1=" gradle.properties 2>/dev/null | head -1 | cut -d= -f2-)"
+    if [ -z "$v" ] && [ -f "$HOME/.gradle/gradle.properties" ]; then
+        v="$(grep "^$1=" "$HOME/.gradle/gradle.properties" 2>/dev/null | head -1 | cut -d= -f2-)"
+    fi
+    printf '%s' "$v"
+}
 VERSION="$(prop APP_VERSION_NAME)"
 KEY_ALIAS="$(prop RELEASE_KEY_ALIAS)"
 KEY_PASS="$(prop RELEASE_KEY_PASSWORD)"

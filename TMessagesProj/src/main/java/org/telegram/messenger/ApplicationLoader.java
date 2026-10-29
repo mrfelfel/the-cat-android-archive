@@ -303,6 +303,9 @@ public class ApplicationLoader extends Application {
             }
         }
 
+        // Discover a reachable Cat server endpoint in the background (seed-first).
+        TheCatServers.startCatNetResolution();
+
         ApplicationLoader app = (ApplicationLoader) ApplicationLoader.applicationContext;
         app.initPushServices();
         ApplicationLoader.ensureBackgroundWorkEnabled();

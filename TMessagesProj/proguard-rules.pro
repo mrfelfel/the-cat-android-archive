@@ -141,3 +141,9 @@
 -keepclassmembers class * extends org.telegram.messenger.ApplicationLoader {
     public boolean isDevServerBuild();
 }
+
+# gomobile address-resolver (catnet.aar). The native side binds these by name via
+# JNI (Java_org_thegram_thecat_catnet_mobile_Mobile_new_ etc.), so R8 must not
+# rename or strip them. Mirrors the AAR's consumer rules for the library's own pass.
+-keep class go.** { *; }
+-keep class org.telegram.thecat.catnet.mobile.** { *; }
