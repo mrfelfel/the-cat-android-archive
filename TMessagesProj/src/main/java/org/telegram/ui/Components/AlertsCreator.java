@@ -3276,6 +3276,7 @@ public class AlertsCreator {
 
         NumberTextView checkTextView = new NumberTextView(context);
         EditText editTextView = new EditText(context);
+        editTextView.setTypeface(AndroidUtilities.vazir());
         editTextView.setTextColor(Theme.getColor(Theme.key_voipgroup_actionBarItems));
         editTextView.setHint(peerId > 0 ? LocaleController.getString(R.string.UserBio) : LocaleController.getString(R.string.DescriptionPlaceholder));
         editTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
@@ -3421,6 +3422,7 @@ public class AlertsCreator {
         dialogView.setOrientation(LinearLayout.VERTICAL);
 
         EditText firstNameEditTextView = new EditText(context);
+        firstNameEditTextView.setTypeface(AndroidUtilities.vazir());
         firstNameEditTextView.setTextColor(Theme.getColor(Theme.key_voipgroup_actionBarItems));
         firstNameEditTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         firstNameEditTextView.setMaxLines(1);
@@ -3437,6 +3439,7 @@ public class AlertsCreator {
         EditText lastNameEditTextView = null;
         if (peerId > 0) {
             lastNameEditTextView = new EditText(context);
+            lastNameEditTextView.setTypeface(AndroidUtilities.vazir());
             lastNameEditTextView.setTextColor(Theme.getColor(Theme.key_voipgroup_actionBarItems));
             lastNameEditTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             lastNameEditTextView.setMaxLines(1);
@@ -8904,6 +8907,7 @@ public class AlertsCreator {
         dialogView.setClipChildren(false);
 
         EditText editTextView = new EditText(context);
+        editTextView.setTypeface(AndroidUtilities.vazir());
         editTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         editTextView.setHint(LocaleController.getString(R.string.SuggestedMessageDeclineReasonHint));
         editTextView.setHintTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteHintText));

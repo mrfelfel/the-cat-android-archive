@@ -1853,7 +1853,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
             textPaint.setColor(Color.WHITE);
-            textPaint.setTypeface(Typeface.SANS_SERIF);
+            textPaint.setTypeface(AndroidUtilities.vazir());
             textPaint.setTextAlign(Paint.Align.CENTER);
             textPaint.setTextSize(AndroidUtilities.dpf2(15f));
             backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);

@@ -38,6 +38,7 @@ import org.telegram.messenger.time.JalaliCalendar;
 import org.telegram.tgnet.Vector;
 import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.Stars.StarsController;
+import org.telegram.messenger.utils.TheCatMoney;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -1874,6 +1875,11 @@ public class LocaleController {
         double doubleAmount;
         boolean discount = amount < 0;
         amount = Math.abs(amount);
+        if (!editText && !StarsController.currency.equals(type)) {
+            // The Cat: display all fiat amounts in tomans only (TheCatMoney).
+            double units = amount / (double) getCurrencyExpDivider(type);
+            return (discount ? "-" : "") + TheCatMoney.formatToman(TheCatMoney.toToman(units, type));
+        }
         Currency currency = Currency.getInstance(type);
         switch (type) {
             case StarsController.currency:
